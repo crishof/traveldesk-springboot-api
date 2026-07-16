@@ -1,6 +1,7 @@
 package com.crishof.traveldeskapi.security.config;
 
 import com.crishof.traveldeskapi.security.jwt.JwtFilter;
+import com.crishof.traveldeskapi.security.web.RateLimitingFilter;
 import com.crishof.traveldeskapi.security.web.RestAccessDeniedHandler;
 import com.crishof.traveldeskapi.security.web.RestAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +60,7 @@ public class SecurityConfig {
     private static final List<String> ALL_HEADERS = List.of("*");
 
     private final JwtFilter jwtFilter;
+    private final RateLimitingFilter rateLimitingFilter;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final RestAccessDeniedHandler restAccessDeniedHandler;
 
@@ -93,7 +95,8 @@ public class SecurityConfig {
                                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/actuator/**").hasRole("ADMIN")
                                 .anyRequest().authenticated())
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(rateLimitingFilter, JwtFilter.class);
 
         return http.build();
     }
@@ -123,6 +126,13 @@ public class SecurityConfig {
 
         if (resolvedOrigins.isEmpty()) {
             throw new IllegalStateException("No valid CORS allowed origins were configured");
+        }
+
+        boolean hasWildcard = resolvedOrigins.stream().anyMatch(origin -> origin.contains("*"));
+        if (hasWildcard) {
+            log.warn("CORS: se ha configurado un patron con comodin ({}) junto con allowCredentials(true). "
+                    + "Esto permite que cualquier origen que encaje sea de confianza. Usa dominios exactos en produccion.",
+                    resolvedOrigins);
         }
 
         log.info("Configured CORS allowed origins/patterns: {}", resolvedOrigins);
