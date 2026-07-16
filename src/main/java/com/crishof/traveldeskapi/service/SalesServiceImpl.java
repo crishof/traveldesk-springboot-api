@@ -23,7 +23,6 @@ public class SalesServiceImpl implements SalesService {
     private final SaleRepository saleRepository;
     private final AgencyRepository agencyRepository;
     private final CustomerRepository customerRepository;
-    private final SupplierRepository supplierRepository;
     private final UserRepository userRepository;
 
     @Override
@@ -133,14 +132,6 @@ public class SalesServiceImpl implements SalesService {
 
     private Customer getCustomerOrThrow(UUID agencyId, UUID customerId) {
         return customerRepository.findByIdAndAgencyId(customerId, agencyId).orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + customerId));
-    }
-
-    private Supplier getSupplierOrNull(UUID agencyId, UUID supplierId) {
-        if (supplierId == null) {
-            return null;
-        }
-
-        return supplierRepository.findByIdAndAgencyId(supplierId, agencyId).orElseThrow(() -> new ResourceNotFoundException("Supplier not found with id: " + supplierId));
     }
 
     private User getUserOrThrow(UUID userId, UUID agencyId) {

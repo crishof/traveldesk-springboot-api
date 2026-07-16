@@ -89,9 +89,6 @@ public class Agency implements Serializable {
     @OneToMany(mappedBy = "agency", cascade = CascadeType.ALL, orphanRemoval = false)
     private Set<Booking> bookings = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "agency", cascade = CascadeType.ALL, orphanRemoval = false)
-    private Set<TeamInvitation> invitations = new LinkedHashSet<>();
-
     @PrePersist
     void onCreate() {
         Instant now = Instant.now();
