@@ -76,6 +76,18 @@ public class GlobalExceptionHandler {
         return respond(HttpStatus.FORBIDDEN, ERROR_FORBIDDEN, ex, request);
     }
 
+    @ExceptionHandler(ForbiddenOperationException.class)
+    public ResponseEntity<ApiError> handleForbiddenOperation(ForbiddenOperationException ex, HttpServletRequest request) {
+        log.warn("Forbidden operation: {}", ex.getMessage());
+        return respond(HttpStatus.FORBIDDEN, ERROR_FORBIDDEN, ex, request);
+    }
+
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<ApiError> handleInvalidRequest(InvalidRequestException ex, HttpServletRequest request) {
+        log.warn("Invalid request: {}", ex.getMessage());
+        return respond(HttpStatus.BAD_REQUEST, ERROR_BAD_REQUEST, ex, request);
+    }
+
     @ExceptionHandler(InvalidTokenException.class)
     public ResponseEntity<ApiError> handleInvalidToken(InvalidTokenException ex, HttpServletRequest request) {
         log.warn("Invalid token: {}", ex.getMessage());
