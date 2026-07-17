@@ -29,7 +29,7 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
 
     @Override
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @Transactional(Transactional.TxType.REQUIRED)
     public List<BookingResponse> getAll(UUID agencyId) {
         validateAgencyId(agencyId);
 
@@ -133,7 +133,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @Transactional(Transactional.TxType.REQUIRED)
     public BookingResponse findById(UUID agencyId, UUID id) {
         validateAgencyId(agencyId);
         return toResponse(getBookingOrThrow(agencyId, id));

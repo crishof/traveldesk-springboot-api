@@ -26,7 +26,7 @@ public class SalesServiceImpl implements SalesService {
     private final UserRepository userRepository;
 
     @Override
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @Transactional(Transactional.TxType.REQUIRED)
     public List<SaleResponse> getAll(UUID agencyId) {
         validateAgencyId(agencyId);
 
@@ -116,7 +116,7 @@ public class SalesServiceImpl implements SalesService {
     }
 
     @Override
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @Transactional(Transactional.TxType.REQUIRED)
     public SaleResponse findById(UUID agencyId, UUID id) {
         validateAgencyId(agencyId);
         return toResponse(getSaleOrThrow(agencyId, id));
@@ -202,7 +202,7 @@ public class SalesServiceImpl implements SalesService {
     }
 
     @Override
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @Transactional(Transactional.TxType.REQUIRED)
     public List<PaymentResponse> getPaymentsForSale(UUID agencyId, UUID saleId) {
         validateAgencyId(agencyId);
 

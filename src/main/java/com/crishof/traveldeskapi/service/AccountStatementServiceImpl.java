@@ -36,7 +36,7 @@ public class AccountStatementServiceImpl implements AccountStatementService {
     private final UserRepository userRepository;
 
     @Override
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @Transactional(Transactional.TxType.REQUIRED)
     public AccountStatementDTO getStatement(UUID userId, Currency currency) {
         validateUserId(userId);
 

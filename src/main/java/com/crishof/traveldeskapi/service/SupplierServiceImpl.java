@@ -33,7 +33,7 @@ public class SupplierServiceImpl implements SupplierService {
     private final BookingRepository bookingRepository;
 
     @Override
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @Transactional(Transactional.TxType.REQUIRED)
     public List<SupplierResponse> getAll(UUID agencyId) {
         validateAgencyId(agencyId);
 
@@ -109,7 +109,7 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @Transactional(Transactional.TxType.REQUIRED)
     public SupplierResponse findById(UUID agencyId, UUID id) {
         validateAgencyId(agencyId);
         return supplierMapper.toResponse(getSupplierOrThrow(agencyId, id));
