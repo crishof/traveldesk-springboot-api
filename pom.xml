@@ -144,6 +144,17 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!-- Flyway: versionado del esquema (sustituye a ddl-auto=update en dev/prod).
+             En Spring Boot 4 la autoconfiguracion vive en el modulo spring-boot-flyway
+             (flyway-core solo no activa la migracion automatica). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
