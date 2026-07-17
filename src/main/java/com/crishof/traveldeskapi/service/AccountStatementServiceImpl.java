@@ -21,8 +21,10 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,8 +45,12 @@ public class AccountStatementServiceImpl implements AccountStatementService {
 
         List<Sale> sales = saleRepository.findByCreatedByIdAndCurrencyOrderBySaleDateAsc(userId, currency.name());
 
+        // Se cargan los bookings PAID del usuario en una sola query y se agrupan en memoria
+        // por (agencia, cliente, fecha de salida) para evitar el N+1 dentro del bucle de ventas.
+        Map<BookingGroupKey, BigDecimal> paidBookingTotals = loadPaidBookingTotals(userId, currency);
+
         for (Sale sale : sales) {
-            BigDecimal commissionAmount = calculateCommissionAmount(sale, currency);
+            BigDecimal commissionAmount = calculateCommissionAmount(sale, currency, paidBookingTotals);
 
             if (commissionAmount.compareTo(BigDecimal.ZERO) <= 0) {
                 continue;
@@ -141,7 +147,28 @@ public class AccountStatementServiceImpl implements AccountStatementService {
         return getStatement(userId, paymentCurrency);
     }
 
-    private BigDecimal calculateCommissionAmount(Sale sale, Currency currency) {
+    /**
+     * Agrupa los bookings PAID del usuario (para la moneda dada) por (agencia, cliente, fecha de salida),
+     * sumando su importe. Equivale a lo que antes hacia una consulta por venta dentro del bucle.
+     */
+    private Map<BookingGroupKey, BigDecimal> loadPaidBookingTotals(UUID userId, Currency currency) {
+        return bookingRepository
+                .findAllByCreatedByIdAndStatusWithAgencyAndCustomer(userId, BookingStatus.PAID)
+                .stream()
+                .filter(booking -> currency.name().equalsIgnoreCase(booking.getCurrency()))
+                .filter(booking -> booking.getAgency() != null
+                        && booking.getCustomer() != null
+                        && booking.getDepartureDate() != null)
+                .collect(Collectors.groupingBy(
+                        booking -> new BookingGroupKey(
+                                booking.getAgency().getId(),
+                                booking.getCustomer().getId(),
+                                booking.getDepartureDate()),
+                        Collectors.reducing(BigDecimal.ZERO, booking -> safeAmount(booking.getAmount()), BigDecimal::add)));
+    }
+
+    private BigDecimal calculateCommissionAmount(Sale sale, Currency currency,
+                                                 Map<BookingGroupKey, BigDecimal> paidBookingTotals) {
         if (sale == null || sale.getCreatedBy() == null) {
             return BigDecimal.ZERO;
         }
@@ -162,19 +189,12 @@ public class AccountStatementServiceImpl implements AccountStatementService {
             return BigDecimal.ZERO;
         }
 
-        BigDecimal totalBookings = bookingRepository
-                .findAllByAgencyIdAndCustomerIdAndCreatedByIdAndDepartureDateAndStatus(
+        BigDecimal totalBookings = paidBookingTotals.getOrDefault(
+                new BookingGroupKey(
                         sale.getAgency().getId(),
                         sale.getCustomer().getId(),
-                        sale.getCreatedBy().getId(),
-                        sale.getDepartureDate(),
-                        BookingStatus.PAID
-                )
-                .stream()
-                .filter(booking -> currency.name().equalsIgnoreCase(booking.getCurrency()))
-                .map(Booking::getAmount)
-                .map(this::safeAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                        sale.getDepartureDate()),
+                BigDecimal.ZERO);
 
         BigDecimal netProfit = totalPaymentsReceived.subtract(totalBookings);
         if (netProfit.compareTo(BigDecimal.ZERO) <= 0) {
@@ -184,6 +204,10 @@ public class AccountStatementServiceImpl implements AccountStatementService {
         return netProfit
                 .multiply(commissionPercentage)
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+    }
+
+    /** Clave de agrupacion de bookings: coincide con los filtros de la consulta por venta original. */
+    private record BookingGroupKey(UUID agencyId, UUID customerId, java.time.LocalDate departureDate) {
     }
 
     private BigDecimal safeAmount(BigDecimal amount) {

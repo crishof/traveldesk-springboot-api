@@ -70,19 +70,6 @@ public class TeamServiceImpl implements TeamService {
         userRepository.delete(member);
     }
 
-    @Override
-    public MessageResponse inviteMember(UUID agencyId, UUID invitedByUserId, TeamInviteRequest request) {
-        validateAgencyId(agencyId);
-        validateUserId(invitedByUserId);
-
-        throw new InvalidRequestException("Team invitation flow is not implemented yet");
-    }
-
-    @Override
-    public MessageResponse acceptInvite(AcceptInviteRequest request) {
-        throw new InvalidRequestException("Invite acceptance flow is not implemented yet");
-    }
-
     private User getUserByAgencyOrThrow(UUID agencyId, UUID userId) {
         return userRepository.findByIdAndAgencyId(userId, agencyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Team member not found with id: " + userId));

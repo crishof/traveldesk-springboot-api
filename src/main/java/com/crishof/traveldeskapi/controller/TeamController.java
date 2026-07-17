@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -38,27 +37,6 @@ public class TeamController {
     ) {
         log.info("Get team members request received for userId={}, agencyId={}", securityUser.getId(), securityUser.getAgencyId());
         return ResponseEntity.ok(teamService.getMembers(securityUser.getAgencyId()));
-    }
-
-    //  ===============
-    //  INVITE TEAM MEMBER
-    //  ===============
-
-    @Operation(summary = "Invite a team member")
-    @ApiResponse(responseCode = "201", description = "Invitation sent successfully")
-    @ApiResponse(responseCode = "400", description = "Invalid request")
-    @ApiResponse(responseCode = "401", description = "Unauthorized")
-    @PreAuthorize("isAuthenticated()")
-    @PostMapping("/invite")
-    public ResponseEntity<MessageResponse> inviteMember(
-            @AuthenticationPrincipal SecurityUser securityUser,
-            @Valid @RequestBody TeamInviteRequest request
-    ) {
-        log.info("Invite team member request received for userId={}, agencyId={}, email={}",
-                securityUser.getId(), securityUser.getAgencyId(), request.email());
-
-        return ResponseEntity.status(HttpStatusCode.valueOf(201))
-                .body(teamService.inviteMember(securityUser.getAgencyId(), securityUser.getId(), request));
     }
 
     //  ===============
