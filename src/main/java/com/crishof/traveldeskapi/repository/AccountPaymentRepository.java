@@ -11,8 +11,6 @@ import java.util.UUID;
 @Repository
 public interface AccountPaymentRepository extends JpaRepository<AccountPayment, UUID> {
 
-    List<AccountPayment> findByUserId(UUID userId);
-
     List<AccountPayment> findByUserIdAndCurrencyOrderByDateAscIdAsc(UUID userId, com.crishof.traveldeskapi.model.Currency currency);
 
     Optional<AccountPayment> findByIdAndUserId(UUID id, UUID userId);
