@@ -83,7 +83,7 @@ class AccountStatementServiceImplTests {
         saveBooking(agency, c2, user, d2, "USD", new BigDecimal("100.00"), BookingStatus.PAID, "B2");
 
         // Cobro manual de 25 USD => movimiento de -25.00
-        saveAccountPayment(user.getId(), new BigDecimal("25.00"), Currency.USD, LocalDate.of(2026, 5, 1));
+        saveAccountPayment(user.getId(), agency.getId(), new BigDecimal("25.00"), Currency.USD, LocalDate.of(2026, 5, 1));
 
         AccountStatementDTO statement = accountStatementService.getStatement(user.getId(), Currency.USD);
 
@@ -108,6 +108,33 @@ class AccountStatementServiceImplTests {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         assertEquals(0, manualSum.compareTo(new BigDecimal("-25.00")),
                 "El cobro manual deberia ser -25.00 pero fue " + manualSum);
+    }
+
+    @Test
+    void statementIsIsolatedPerUserAndAgency() {
+        Agency agencyA = saveAgency("Agency A", "agency-a");
+        Agency agencyB = saveAgency("Agency B", "agency-b");
+        User userA = saveUser(agencyA, "a@example.com", new BigDecimal("10.00"));
+        User userB = saveUser(agencyB, "b@example.com", new BigDecimal("10.00"));
+        Customer custB = saveCustomer(agencyB, "Customer B", "custb@example.com");
+        LocalDate d = LocalDate.of(2026, 6, 1);
+
+        // Datos de la agencia A (usuario A)
+        saveAccountPayment(userA.getId(), agencyA.getId(), new BigDecimal("30.00"), Currency.USD, d);
+
+        // Datos de la agencia B (usuario B): NO deben aparecer en el estado de cuenta de A.
+        saveAccountPayment(userB.getId(), agencyB.getId(), new BigDecimal("99.00"), Currency.USD, d);
+        saveSaleWithPayment(agencyB, custB, userB, d, "USD", new BigDecimal("5000.00"));
+
+        AccountStatementDTO statementA = accountStatementService.getStatement(userA.getId(), Currency.USD);
+
+        // Solo el cobro de A: balance -30.00, un movimiento, y nada de B (99.00).
+        assertEquals(1, statementA.getMovements().size());
+        assertEquals(0, statementA.getBalance().compareTo(new BigDecimal("-30.00")),
+                "El estado de cuenta de A no debe incluir datos de la agencia B");
+        boolean leaksFromB = statementA.getMovements().stream()
+                .anyMatch(m -> m.getAmount().abs().compareTo(new BigDecimal("99.00")) == 0);
+        assertEquals(false, leaksFromB, "Fuga detectada: un movimiento de la agencia B apareció en A");
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────
@@ -177,9 +204,10 @@ class AccountStatementServiceImplTests {
         bookingRepository.save(booking);
     }
 
-    private void saveAccountPayment(UUID userId, BigDecimal amount, Currency currency, LocalDate date) {
+    private void saveAccountPayment(UUID userId, UUID agencyId, BigDecimal amount, Currency currency, LocalDate date) {
         com.crishof.traveldeskapi.model.AccountPayment payment = new com.crishof.traveldeskapi.model.AccountPayment();
         payment.setUserId(userId);
+        payment.setAgencyId(agencyId);
         payment.setAmount(amount);
         payment.setCurrency(currency);
         payment.setDate(date);

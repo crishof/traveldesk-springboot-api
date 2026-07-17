@@ -24,6 +24,11 @@ public class AccountPayment {
 
     private UUID userId;
 
+    // Aislamiento por agencia (defensa en profundidad + preparado para RLS).
+    // Se deriva de la agencia del usuario al crear el cobro.
+    @Column(name = "agency_id", nullable = false)
+    private UUID agencyId;
+
     private LocalDate date;
 
     private BigDecimal amount;

@@ -103,10 +103,11 @@ public class AccountStatementServiceImpl implements AccountStatementService {
     @Transactional
     public AccountStatementDTO addPayment(UUID userId, AccountPaymentRequest request) {
         validateUserId(userId);
-        getUserOrThrow(userId);
+        User user = getUserOrThrow(userId);
 
         AccountPayment payment = new AccountPayment();
         payment.setUserId(userId);
+        payment.setAgencyId(user.getAgency().getId());
         payment.setDate(request.date());
         payment.setAmount(request.amount().setScale(2, RoundingMode.HALF_UP));
         payment.setCurrency(request.currency());
