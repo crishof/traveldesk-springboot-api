@@ -30,7 +30,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final SaleRepository saleRepository;
 
     @Override
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @Transactional(Transactional.TxType.REQUIRED)
     public List<CustomerResponse> getAll(UUID agencyId) {
         validateAgencyId(agencyId);
 
@@ -95,7 +95,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @Transactional(Transactional.TxType.REQUIRED)
     public CustomerResponse findById(UUID agencyId, UUID id) {
         validateAgencyId(agencyId);
         return toResponse(getCustomerOrThrow(agencyId, id));
