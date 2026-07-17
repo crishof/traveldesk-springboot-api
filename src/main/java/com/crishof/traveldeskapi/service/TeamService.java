@@ -15,8 +15,4 @@ public interface TeamService {
     TeamMemberResponse updateCommission(UUID agencyId, UUID memberId, @Valid TeamMemberCommissionRequest request);
 
     void removeMember(UUID agencyId, UUID memberId, UUID currentUserId);
-
-    MessageResponse inviteMember(UUID agencyId, UUID invitedByUserId, @Valid TeamInviteRequest request);
-
-    MessageResponse acceptInvite(@Valid AcceptInviteRequest request);
 }
