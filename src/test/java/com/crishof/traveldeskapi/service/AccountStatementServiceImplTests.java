@@ -181,6 +181,7 @@ class AccountStatementServiceImplTests {
 
         Payment payment = new Payment();
         payment.setSale(sale);
+        payment.setAgencyId(agency.getId());
         payment.setOriginalAmount(convertedAmount);
         payment.setSourceCurrency(currency);
         payment.setExchangeRate(BigDecimal.ONE);

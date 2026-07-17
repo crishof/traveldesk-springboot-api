@@ -26,6 +26,10 @@ public class Payment {
     @JoinColumn(name = "sale_id", nullable = false)
     private Sale sale;
 
+    // Aislamiento por agencia (defensa en profundidad; hoy el pago se aisla via su Sale).
+    @Column(name = "agency_id", nullable = false)
+    private UUID agencyId;
+
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal originalAmount;
 

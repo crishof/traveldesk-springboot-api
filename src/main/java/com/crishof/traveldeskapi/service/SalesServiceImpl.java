@@ -182,6 +182,7 @@ public class SalesServiceImpl implements SalesService {
 
         Payment payment = new Payment();
         payment.setSale(sale);
+        payment.setAgencyId(agencyId);
         payment.setOriginalAmount(request.originalAmount());
         payment.setSourceCurrency(request.sourceCurrency().toUpperCase(Locale.ROOT));
         payment.setDescription(normalizeText(request.description()));
