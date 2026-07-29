@@ -1,0 +1,26 @@
+name: CI
+
+# Verificacion en cada push a develop/main y en PRs a main.
+# El despliegue lo gestiona Railway via su integracion git al pushear a main
+# (no se dispara desde aqui; no requiere secrets en el repo).
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Build and test
+        run: ./mvnw -B verify
